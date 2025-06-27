@@ -1,44 +1,51 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Todo.Api.Models;
 
 namespace Todo.Api.Controllers;
-
 
 [ApiController]
 [Route("[controller]")]
 public class TodoController : ControllerBase
 {
+    private readonly AppDbContext _context;
     private List<Models.Todo> _todoList;
 
-    public TodoController()
+    public TodoController(AppDbContext appDbContext)
     {
         _todoList = new List<Models.Todo>
         {
-            new Models.Todo { Id = 1, TaskName = "Clean the litter box" },
-            new Models.Todo { Id = 2, TaskName = "Brush teeth"}
+            new() { Id = 1, TaskName = "Clean the litter box" },
+            new() { Id = 2, TaskName = "Brush teeth" }
         };
+
+        _context = appDbContext;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<Models.Todo>), StatusCodes.Status200OK)]
-    public Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync()
     {
-        return Task.FromResult<IActionResult>(Ok(_todoList));
+        var items = await _context.TodoItems.ToListAsync();
+
+        return Ok(items);
     }
-    
+
     [HttpPost]
     [ProducesResponseType(typeof(Models.Todo), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public Task<IActionResult> CreateAsync(TodoCreateRequest request)
+    public async Task<IActionResult> CreateAsync(TodoCreateRequest request)
     {
         var todo = new Models.Todo
         {
-            Id = _todoList.Max(i => i.Id) + 1, 
-            TaskName = request.TaskName
+            TaskName = request.TaskName,
+            IsCompleted = false
         };
-        
-        _todoList.Add(todo);
 
-        return Task.FromResult<IActionResult>(Ok(todo));
+        _context.TodoItems.Add(todo);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(todo);
     }
 }

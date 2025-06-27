@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Todo.Api;
 
 public class Program
@@ -8,12 +10,15 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddAuthorization();
-        
+
         builder.Services.AddControllers(opt => opt.SuppressAsyncSuffixInActionNames = false);
-        
+
         builder.Services.AddEndpointsApiExplorer();
 
         builder.Services.AddSwaggerGen();
+
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseInMemoryDatabase("TodoDb"));
 
         var app = builder.Build();
 
@@ -27,7 +32,7 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-        
+
         app.MapControllers();
 
         app.Run();
