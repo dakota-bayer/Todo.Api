@@ -1,0 +1,5 @@
+# Ignore JetBrains Rider IDE settings
+.idea/
+
+**/bin/
+**/obj/
